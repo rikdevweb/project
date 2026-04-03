@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cloud IDE</title>
+  <style>
+    body { margin:0; background:#1e1e1e; color:white; }
+    #editor { height:90vh; }
+    button {
+      background:#007acc;
+      border:none;
+      padding:10px;
+      color:white;
+      margin:5px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h3 style="padding:10px;">🚀 Cloud IDE</h3>
+
+<div id="editor"></div>
+
+<button onclick="save()">💾 Save</button>
+<button onclick="run()">▶ Run</button>
+
+<script src="https://unpkg.com/monaco-editor@0.34.1/min/vs/loader.js"></script>
+
+<script>
+let user = new URLSearchParams(window.location.search).get("user")
+
+require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.34.1/min/vs' }});
+
+require(["vs/editor/editor.main"], function () {
+  window.editor = monaco.editor.create(document.getElementById('editor'), {
+    value: "<h1>Hello User</h1>",
+    language: "html",
+    theme: "vs-dark"
+  });
+
+  fetch(`/load?user=${user}`)
+    .then(res=>res.text())
+    .then(data=>editor.setValue(data))
+});
+
+function save(){
+  fetch("/save", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      user: user,
+      code: editor.getValue()
+    })
+  }).then(()=>alert("Saved!"))
+}
+
+function run(){
+  window.open(`/preview?user=${user}`)
+}
+</script>
+
+</body>
+</html>
